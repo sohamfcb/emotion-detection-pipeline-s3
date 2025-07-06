@@ -54,7 +54,8 @@ def load_data(file_path: str) -> pd.DataFrame:
 def evaluate_model(clf, X_test: np.ndarray, y_test: np.ndarray) -> dict:
     """Evaluate the model and return the evaluation metrics."""
 
-    params=yaml.safe_load("params.yaml","r")
+    with open("params.yaml", 'r') as file:
+        params = yaml.safe_load(file)
     try:
         y_pred = clf.predict(X_test)
         y_pred_proba = clf.predict_proba(X_test)[:, 1]
