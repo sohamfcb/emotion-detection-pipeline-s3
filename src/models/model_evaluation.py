@@ -4,6 +4,8 @@ import pickle
 import json
 from sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score
 import logging
+from dvclive import Live
+import yaml
 
 # logging configuration
 logger = logging.getLogger('model_evaluation')
@@ -51,6 +53,8 @@ def load_data(file_path: str) -> pd.DataFrame:
 
 def evaluate_model(clf, X_test: np.ndarray, y_test: np.ndarray) -> dict:
     """Evaluate the model and return the evaluation metrics."""
+
+    params=yaml.safe_load("params.yaml","r")
     try:
         y_pred = clf.predict(X_test)
         y_pred_proba = clf.predict_proba(X_test)[:, 1]
@@ -59,6 +63,16 @@ def evaluate_model(clf, X_test: np.ndarray, y_test: np.ndarray) -> dict:
         precision = precision_score(y_test, y_pred)
         recall = recall_score(y_test, y_pred)
         auc = roc_auc_score(y_test, y_pred_proba)
+
+        with Live(save_dvc_exp=True) as live:
+            live.log_metric("accuracy",accuracy)
+            live.log_metric("precision",precision)
+            live.log_metric("recall",recall)
+            live.log_metric("auc-score",auc)
+
+            for param, value in params.items():
+                for key, val in value.items():
+                    live.log_param(f"{param}_{key}",val)
 
         metrics_dict = {
             'accuracy': accuracy,
